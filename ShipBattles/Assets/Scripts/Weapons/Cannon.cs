@@ -4,6 +4,12 @@ using UnityEngine.InputSystem;
 public class Cannon : MonoBehaviour
 {
     static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
+    static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+    static readonly int ColorId = Shader.PropertyToID("_Color");
+
+    // Matches ship base top (scale.y 0.2 * cylinder half-height 1) plus a small lift above the deck.
+    const float ZoneDeckOffset = 0.28f;
+    const float ZoneHeightScale = 0.01f;
 
     [SerializeField] Missile missilePrefab;
     [SerializeField] Transform bulletSpawn;
@@ -16,9 +22,14 @@ public class Cannon : MonoBehaviour
     float fireCooldown = 0.35f;
     [SerializeField, Tooltip("Emission applied to the cannon mesh while the player is in range.")]
     Color readyEmission = new Color(2.2f, 1.1f, 0.2f, 1f);
+    [SerializeField] Transform zoneVisual;
+    [SerializeField] MeshRenderer zoneRenderer;
+    [SerializeField] Color ringIdleColor = new Color(1f, 0.55f, 0.1f, 0.22f);
+    [SerializeField] Color ringReadyColor = new Color(1f, 0.75f, 0.2f, 0.45f);
 
     float _nextFireTime;
     TopDownPlayerController _player;
+    Transform _shipTransform;
     Collider _cannonCollider;
     MeshRenderer _cannonRenderer;
     MaterialPropertyBlock _propertyBlock;
@@ -31,6 +42,10 @@ public class Cannon : MonoBehaviour
         _cannonRenderer = GetComponent<MeshRenderer>();
         _propertyBlock = new MaterialPropertyBlock();
 
+        ShipController ownerShip = GetComponentInParent<ShipController>();
+        if (ownerShip != null)
+            _shipTransform = ownerShip.transform;
+
         if (bulletSpawn == null)
         {
             Transform found = transform.Find("BulletSpawn");
@@ -38,6 +53,14 @@ public class Cannon : MonoBehaviour
                 bulletSpawn = found;
         }
 
+        // Cannon mesh scale is non-uniform; keep the zone unparented so the disc stays circular.
+        if (zoneVisual != null)
+        {
+            zoneVisual.SetParent(null, false);
+            SyncZoneScale();
+        }
+
+        SyncZonePosition();
         ApplyReadyVisuals(false);
     }
 
@@ -46,6 +69,12 @@ public class Cannon : MonoBehaviour
         // Shared across cannons; do not Disable on OnDisable or one cannon would mute the rest.
         if (fireAction != null && fireAction.action != null)
             fireAction.action.Enable();
+    }
+
+    void OnDestroy()
+    {
+        if (zoneVisual != null)
+            Destroy(zoneVisual.gameObject);
     }
 
     void Update()
@@ -65,6 +94,11 @@ public class Cannon : MonoBehaviour
             return;
 
         TryFire();
+    }
+
+    void LateUpdate()
+    {
+        SyncZonePosition();
     }
 
     bool IsPlayerInRange()
@@ -99,14 +133,45 @@ public class Cannon : MonoBehaviour
         missile.Launch(bulletSpawn.forward * muzzleSpeed);
     }
 
-    void ApplyReadyVisuals(bool ready)
+    void SyncZoneScale()
     {
-        if (_cannonRenderer == null)
+        if (zoneVisual == null)
             return;
 
-        _cannonRenderer.GetPropertyBlock(_propertyBlock);
-        _propertyBlock.SetColor(EmissionColorId, ready ? readyEmission : Color.black);
-        _cannonRenderer.SetPropertyBlock(_propertyBlock);
+        // Default cylinder radius is 0.5, so scale xz = diameter yields world radius = interactRadius.
+        float diameter = interactRadius * 2f;
+        zoneVisual.localScale = new Vector3(diameter, ZoneHeightScale, diameter);
+    }
+
+    void SyncZonePosition()
+    {
+        if (zoneVisual == null)
+            return;
+
+        Vector3 position = transform.position;
+        position.y = _shipTransform != null
+            ? _shipTransform.position.y + ZoneDeckOffset
+            : transform.position.y;
+        zoneVisual.SetPositionAndRotation(position, Quaternion.identity);
+    }
+
+    void ApplyReadyVisuals(bool ready)
+    {
+        if (_cannonRenderer != null)
+        {
+            _cannonRenderer.GetPropertyBlock(_propertyBlock);
+            _propertyBlock.SetColor(EmissionColorId, ready ? readyEmission : Color.black);
+            _cannonRenderer.SetPropertyBlock(_propertyBlock);
+        }
+
+        if (zoneRenderer != null)
+        {
+            Color ringColor = ready ? ringReadyColor : ringIdleColor;
+            zoneRenderer.GetPropertyBlock(_propertyBlock);
+            _propertyBlock.SetColor(BaseColorId, ringColor);
+            _propertyBlock.SetColor(ColorId, ringColor);
+            zoneRenderer.SetPropertyBlock(_propertyBlock);
+        }
     }
 
     void OnDrawGizmosSelected()

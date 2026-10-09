@@ -705,8 +705,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: shipA
       objectReference: {fileID: 0}
+    - target: {fileID: 5406109320187268972, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 6778470775097780868, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}

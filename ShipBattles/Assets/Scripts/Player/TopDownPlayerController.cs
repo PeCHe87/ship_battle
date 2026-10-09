@@ -1,3 +1,4 @@
+using InControl;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -26,6 +27,7 @@ public class TopDownPlayerController : MonoBehaviour
 
     void Awake()
     {
+        EnsureInControlManager();
         _controller = GetComponent<CharacterController>();
         _shipSensor = GetComponent<PlayerShipSensor>();
     }
@@ -46,9 +48,7 @@ public class TopDownPlayerController : MonoBehaviour
 
     void Update()
     {
-        Vector2 input = Vector2.zero;
-        if (moveAction != null && moveAction.action != null)
-            input = moveAction.action.ReadValue<Vector2>();
+        Vector2 input = ReadMoveInput();
 
         bool hasInput = input.sqrMagnitude > inputDeadzone * inputDeadzone;
         Vector3 inputDir = hasInput
@@ -64,6 +64,30 @@ public class TopDownPlayerController : MonoBehaviour
             UpdateSpaceMovement(inputDir, hasInput);
 
         _wasInside = inside;
+    }
+
+    static void EnsureInControlManager()
+    {
+        // Instance throws if missing; find without touching the singleton getter.
+        if (FindFirstObjectByType<InControlManager>() != null)
+            return;
+
+        var go = new GameObject("InControl Manager");
+        go.AddComponent<InControlManager>();
+    }
+
+    Vector2 ReadMoveInput()
+    {
+        Vector2 keyboardOrPad = Vector2.zero;
+        if (moveAction != null && moveAction.action != null)
+            keyboardOrPad = moveAction.action.ReadValue<Vector2>();
+
+        // Direction is whichever of left stick / D-pad was used most recently on the active device.
+        InControl.InputDevice device = InputManager.ActiveDevice;
+        Vector2 gamepad = device != null ? (Vector2)device.Direction : Vector2.zero;
+
+        // Prefer the stronger source so keyboard and gamepad do not cancel each other.
+        return gamepad.sqrMagnitude > keyboardOrPad.sqrMagnitude ? gamepad : keyboardOrPad;
     }
 
     void HandleModeTransition(bool inside, Vector3 inputDir)
