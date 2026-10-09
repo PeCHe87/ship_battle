@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class Cannon : MonoBehaviour
 {
@@ -13,7 +12,6 @@ public class Cannon : MonoBehaviour
 
     [SerializeField] Missile missilePrefab;
     [SerializeField] Transform bulletSpawn;
-    [SerializeField] InputActionReference fireAction;
     [SerializeField, Tooltip("Horizontal distance the player must be within to fire this cannon.")]
     float interactRadius = 3f;
     [SerializeField, Tooltip("World-space speed applied once at the muzzle.")]
@@ -28,7 +26,6 @@ public class Cannon : MonoBehaviour
     [SerializeField] Color ringReadyColor = new Color(1f, 0.75f, 0.2f, 0.45f);
 
     float _nextFireTime;
-    TopDownPlayerController _player;
     Transform _shipTransform;
     Collider _cannonCollider;
     MeshRenderer _cannonRenderer;
@@ -37,7 +34,6 @@ public class Cannon : MonoBehaviour
 
     void Awake()
     {
-        _player = FindFirstObjectByType<TopDownPlayerController>();
         _cannonCollider = GetComponent<Collider>();
         _cannonRenderer = GetComponent<MeshRenderer>();
         _propertyBlock = new MaterialPropertyBlock();
@@ -64,13 +60,6 @@ public class Cannon : MonoBehaviour
         ApplyReadyVisuals(false);
     }
 
-    void OnEnable()
-    {
-        // Shared across cannons; do not Disable on OnDisable or one cannon would mute the rest.
-        if (fireAction != null && fireAction.action != null)
-            fireAction.action.Enable();
-    }
-
     void OnDestroy()
     {
         if (zoneVisual != null)
@@ -79,18 +68,16 @@ public class Cannon : MonoBehaviour
 
     void Update()
     {
-        bool inRange = IsPlayerInRange();
+        TopDownPlayerController player =
+            TopDownPlayerController.FindNearestInRange(transform.position, interactRadius);
+        bool inRange = player != null;
         if (inRange != _playerInRange)
         {
             _playerInRange = inRange;
             ApplyReadyVisuals(inRange);
         }
 
-        if (fireAction == null || fireAction.action == null)
-            return;
-        if (!fireAction.action.WasPressedThisFrame())
-            return;
-        if (!inRange)
+        if (player == null || !player.WasInteractPressed())
             return;
 
         TryFire();
@@ -99,16 +86,6 @@ public class Cannon : MonoBehaviour
     void LateUpdate()
     {
         SyncZonePosition();
-    }
-
-    bool IsPlayerInRange()
-    {
-        if (_player == null)
-            return false;
-
-        Vector3 toPlayer = _player.transform.position - transform.position;
-        toPlayer.y = 0f;
-        return toPlayer.sqrMagnitude <= interactRadius * interactRadius;
     }
 
     void TryFire()

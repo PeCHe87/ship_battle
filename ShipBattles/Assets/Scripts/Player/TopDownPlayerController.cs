@@ -16,6 +16,12 @@ public class TopDownPlayerController : MonoBehaviour
     [SerializeField] float spaceAcceleration = 8f;
     [SerializeField] float spaceDeceleration = 4f;
 
+    /// <summary>Assigned by PlayerDeviceBinder. Null when using UnityDevice or keyboard.</summary>
+    public InControl.InputDevice Device { get; set; }
+
+    /// <summary>Unity Input System Gamepad/Joystick when InControl has no matching pad.</summary>
+    public UnityEngine.InputSystem.InputDevice UnityDevice { get; set; }
+
     CharacterController _controller;
     PlayerShipSensor _shipSensor;
     float _verticalVelocity;
@@ -27,7 +33,6 @@ public class TopDownPlayerController : MonoBehaviour
 
     void Awake()
     {
-        EnsureInControlManager();
         _controller = GetComponent<CharacterController>();
         _shipSensor = GetComponent<PlayerShipSensor>();
     }
@@ -66,28 +71,69 @@ public class TopDownPlayerController : MonoBehaviour
         _wasInside = inside;
     }
 
-    static void EnsureInControlManager()
+    public bool WasInteractPressed()
     {
-        // Instance throws if missing; find without touching the singleton getter.
-        if (FindFirstObjectByType<InControlManager>() != null)
-            return;
+        if (Device != null)
+            return Device.Action1.WasPressed;
 
-        var go = new GameObject("InControl Manager");
-        go.AddComponent<InControlManager>();
+        if (UnityDevice is Gamepad gamepad)
+            return gamepad.buttonSouth.wasPressedThisFrame;
+
+        if (UnityDevice is Joystick joystick)
+        {
+            if (joystick.trigger != null && joystick.trigger.wasPressedThisFrame)
+                return true;
+        }
+
+        Keyboard keyboard = Keyboard.current;
+        return keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
+    }
+
+    public static TopDownPlayerController FindNearestInRange(Vector3 origin, float radius)
+    {
+        TopDownPlayerController[] players =
+            FindObjectsByType<TopDownPlayerController>(FindObjectsSortMode.None);
+        float radiusSq = radius * radius;
+        TopDownPlayerController nearest = null;
+        float nearestSq = float.MaxValue;
+
+        for (int i = 0; i < players.Length; i++)
+        {
+            TopDownPlayerController player = players[i];
+            if (player == null)
+                continue;
+
+            Vector3 toPlayer = player.transform.position - origin;
+            toPlayer.y = 0f;
+            float distSq = toPlayer.sqrMagnitude;
+            if (distSq > radiusSq || distSq >= nearestSq)
+                continue;
+
+            nearestSq = distSq;
+            nearest = player;
+        }
+
+        return nearest;
     }
 
     Vector2 ReadMoveInput()
     {
-        Vector2 keyboardOrPad = Vector2.zero;
+        if (Device != null)
+            return (Vector2)Device.Direction;
+
+        if (UnityDevice is Gamepad gamepad)
+            return gamepad.leftStick.ReadValue();
+
+        if (UnityDevice is Joystick joystick)
+        {
+            if (joystick.stick != null)
+                return joystick.stick.ReadValue();
+        }
+
         if (moveAction != null && moveAction.action != null)
-            keyboardOrPad = moveAction.action.ReadValue<Vector2>();
+            return moveAction.action.ReadValue<Vector2>();
 
-        // Direction is whichever of left stick / D-pad was used most recently on the active device.
-        InControl.InputDevice device = InputManager.ActiveDevice;
-        Vector2 gamepad = device != null ? (Vector2)device.Direction : Vector2.zero;
-
-        // Prefer the stronger source so keyboard and gamepad do not cancel each other.
-        return gamepad.sqrMagnitude > keyboardOrPad.sqrMagnitude ? gamepad : keyboardOrPad;
+        return Vector2.zero;
     }
 
     void HandleModeTransition(bool inside, Vector3 inputDir)

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public enum ShipMoveButtonAction
 {
@@ -18,7 +17,6 @@ public class ShipMoveButton : MonoBehaviour
 
     [SerializeField] ShipMoveButtonAction actionType = ShipMoveButtonAction.MoveForward;
     [SerializeField] ShipController ship;
-    [SerializeField] InputActionReference toggleAction;
     [SerializeField, Tooltip("Horizontal distance the player must be within to use this button.")]
     float interactRadius = 2.5f;
     [SerializeField] Transform zoneVisual;
@@ -27,14 +25,12 @@ public class ShipMoveButton : MonoBehaviour
     [SerializeField] Color ringReadyColor = new Color(1f, 0.75f, 0.2f, 0.45f);
     [SerializeField] Color ringActiveColor = new Color(1f, 0.85f, 0.25f, 0.65f);
 
-    TopDownPlayerController _player;
     MaterialPropertyBlock _propertyBlock;
     bool _playerInRange;
     bool _isOn;
 
     void Awake()
     {
-        _player = FindFirstObjectByType<TopDownPlayerController>();
         _propertyBlock = new MaterialPropertyBlock();
 
         if (ship == null)
@@ -42,13 +38,6 @@ public class ShipMoveButton : MonoBehaviour
 
         SyncZoneScale();
         RefreshVisuals();
-    }
-
-    void OnEnable()
-    {
-        // Shared across buttons; do not Disable on OnDisable or one button would mute the rest.
-        if (toggleAction != null && toggleAction.action != null)
-            toggleAction.action.Enable();
     }
 
     void OnDisable()
@@ -63,34 +52,22 @@ public class ShipMoveButton : MonoBehaviour
 
     void Update()
     {
-        bool inRange = IsPlayerInRange();
+        TopDownPlayerController player =
+            TopDownPlayerController.FindNearestInRange(transform.position, interactRadius);
+        bool inRange = player != null;
         if (inRange != _playerInRange)
         {
             _playerInRange = inRange;
             RefreshVisuals();
         }
 
-        if (!inRange)
-            return;
-        if (toggleAction == null || toggleAction.action == null)
-            return;
-        if (!toggleAction.action.WasPressedThisFrame())
+        if (player == null || !player.WasInteractPressed())
             return;
 
         if (_isOn)
             TurnOff();
         else
             TurnOn();
-    }
-
-    bool IsPlayerInRange()
-    {
-        if (_player == null)
-            return false;
-
-        Vector3 toPlayer = _player.transform.position - transform.position;
-        toPlayer.y = 0f;
-        return toPlayer.sqrMagnitude <= interactRadius * interactRadius;
     }
 
     void TurnOn()
