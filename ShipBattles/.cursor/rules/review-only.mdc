@@ -1,0 +1,12 @@
+---
+description: Review requests are analysis only — do not edit until asked
+alwaysApply: true
+---
+
+# Review only
+
+When the user asks to review, inspect, diagnose, or check what is going on (`revisar`, `revisá`, `review`, `qué está pasando`), do that and stop.
+
+- Read and explain. Do not edit files, implement a fix, or apply “quick” changes.
+- Do not treat a review as permission to patch the issue you found.
+- Only change code after an explicit request to implement, fix, or apply the change.

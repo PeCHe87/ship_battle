@@ -1,0 +1,10 @@
+---
+description: Follow YAGNI — only implement what is needed now
+alwaysApply: true
+---
+
+# YAGNI
+
+- Implement only what the current task requires.
+- Avoid speculative abstractions, unused config, and “for later” helpers.
+- Prefer the smallest change that solves the requested problem.
