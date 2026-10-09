@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 public class TopDownPlayerController : MonoBehaviour
 {
     [SerializeField] InputActionReference moveAction;
+    [SerializeField] RotateY rotatingLevel;
     [SerializeField] float moveSpeed = 6f;
     [SerializeField] float rotateSpeed = 720f;
     [SerializeField] float inputDeadzone = 0.1f;
@@ -31,6 +32,8 @@ public class TopDownPlayerController : MonoBehaviour
 
     void Update()
     {
+        ApplyLevelCarry();
+
         Vector2 input = Vector2.zero;
         if (moveAction != null && moveAction.action != null)
             input = moveAction.action.ReadValue<Vector2>();
@@ -59,5 +62,26 @@ public class TopDownPlayerController : MonoBehaviour
         Vector3 velocity = moveDir * moveSpeed;
         velocity.y = _verticalVelocity;
         _controller.Move(velocity * Time.deltaTime);
+    }
+
+    void ApplyLevelCarry()
+    {
+        if (rotatingLevel == null || !_controller.isGrounded)
+            return;
+
+        float yawDelta = rotatingLevel.Speed * Time.deltaTime;
+        Vector3 pivot = rotatingLevel.transform.position;
+        pivot.y = transform.position.y;
+
+        Vector3 offset = transform.position - pivot;
+        offset.y = 0f;
+        Vector3 carried = Quaternion.AngleAxis(yawDelta, Vector3.up) * offset;
+        Vector3 carryDelta = (pivot + carried) - transform.position;
+        carryDelta.y = 0f;
+
+        if (carryDelta.sqrMagnitude > 0f)
+            _controller.Move(carryDelta);
+
+        transform.Rotate(0f, yawDelta, 0f, Space.World);
     }
 }
