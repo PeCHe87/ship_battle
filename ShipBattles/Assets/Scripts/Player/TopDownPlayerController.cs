@@ -5,13 +5,16 @@ using UnityEngine.InputSystem;
 public class TopDownPlayerController : MonoBehaviour
 {
     [SerializeField] InputActionReference moveAction;
-    [SerializeField] RotateY rotatingLevel;
+    [SerializeField] Transform ship;
     [SerializeField] float moveSpeed = 6f;
     [SerializeField] float rotateSpeed = 720f;
     [SerializeField] float inputDeadzone = 0.1f;
 
     CharacterController _controller;
     float _verticalVelocity;
+    Vector3 _prevShipPosition;
+    float _prevShipYaw;
+    bool _hasShipPose;
 
     void Awake()
     {
@@ -22,6 +25,8 @@ public class TopDownPlayerController : MonoBehaviour
     {
         if (moveAction != null && moveAction.action != null)
             moveAction.action.Enable();
+
+        CacheShipPose();
     }
 
     void OnDisable()
@@ -32,8 +37,6 @@ public class TopDownPlayerController : MonoBehaviour
 
     void Update()
     {
-        ApplyLevelCarry();
-
         Vector2 input = Vector2.zero;
         if (moveAction != null && moveAction.action != null)
             input = moveAction.action.ReadValue<Vector2>();
@@ -64,24 +67,55 @@ public class TopDownPlayerController : MonoBehaviour
         _controller.Move(velocity * Time.deltaTime);
     }
 
-    void ApplyLevelCarry()
+    void LateUpdate()
     {
-        if (rotatingLevel == null || !_controller.isGrounded)
+        ApplyShipCarry();
+    }
+
+    void ApplyShipCarry()
+    {
+        if (ship == null)
             return;
 
-        float yawDelta = rotatingLevel.Speed * Time.deltaTime;
-        Vector3 pivot = rotatingLevel.transform.position;
-        pivot.y = transform.position.y;
+        if (!_hasShipPose)
+        {
+            CacheShipPose();
+            return;
+        }
 
-        Vector3 offset = transform.position - pivot;
-        offset.y = 0f;
-        Vector3 carried = Quaternion.AngleAxis(yawDelta, Vector3.up) * offset;
-        Vector3 carryDelta = (pivot + carried) - transform.position;
-        carryDelta.y = 0f;
+        float yawDelta = Mathf.DeltaAngle(_prevShipYaw, ship.eulerAngles.y);
 
-        if (carryDelta.sqrMagnitude > 0f)
-            _controller.Move(carryDelta);
+        if (_controller.isGrounded)
+        {
+            Vector3 worldOffset = transform.position - _prevShipPosition;
+            worldOffset.y = 0f;
+            Vector3 localOffset = Quaternion.Euler(0f, -_prevShipYaw, 0f) * worldOffset;
+            Vector3 targetPosition = ship.position + Quaternion.Euler(0f, ship.eulerAngles.y, 0f) * localOffset;
+            targetPosition.y = transform.position.y;
 
-        transform.Rotate(0f, yawDelta, 0f, Space.World);
+            // Hard-attach: CharacterController.Move collision-resolves and slides on a rotating deck.
+            bool wasEnabled = _controller.enabled;
+            _controller.enabled = false;
+            transform.position = targetPosition;
+            _controller.enabled = wasEnabled;
+
+            if (!Mathf.Approximately(yawDelta, 0f))
+                transform.Rotate(0f, yawDelta, 0f, Space.World);
+        }
+
+        CacheShipPose();
+    }
+
+    void CacheShipPose()
+    {
+        if (ship == null)
+        {
+            _hasShipPose = false;
+            return;
+        }
+
+        _prevShipPosition = ship.position;
+        _prevShipYaw = ship.eulerAngles.y;
+        _hasShipPose = true;
     }
 }
