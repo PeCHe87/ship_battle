@@ -121,6 +121,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1215989775375757448}
+  - component: {fileID: 1215989775375757449}
   m_Layer: 0
   m_Name: ScreenBoundaries
   m_TagString: Untagged
@@ -147,6 +148,18 @@ Transform:
   - {fileID: 1137683157429915422}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1215989775375757449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5027366904527142040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8f3a2e14d6b4f0a9e7c5b1d3a8f6024, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6939843855128330729
 GameObject:
   m_ObjectHideFlags: 0
