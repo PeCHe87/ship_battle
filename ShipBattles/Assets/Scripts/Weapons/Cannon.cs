@@ -109,9 +109,15 @@ public class Cannon : MonoBehaviour
 
         Missile missile = Instantiate(missilePrefab, bulletSpawn.position, bulletSpawn.rotation);
 
-        Collider missileCollider = missile.GetComponent<Collider>();
-        if (_cannonCollider != null && missileCollider != null)
-            Physics.IgnoreCollision(missileCollider, _cannonCollider);
+        ShipController ownerShip = GetComponentInParent<ShipController>();
+        if (ownerShip != null)
+            missile.IgnoreOwnerWhileExiting(ownerShip.GetComponentsInChildren<Collider>());
+        else if (_cannonCollider != null)
+        {
+            Collider missileCollider = missile.GetComponent<Collider>();
+            if (missileCollider != null)
+                Physics.IgnoreCollision(missileCollider, _cannonCollider);
+        }
 
         missile.Launch(bulletSpawn.forward * muzzleSpeed);
     }
