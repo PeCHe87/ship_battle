@@ -1,14 +1,27 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class ShipController : MonoBehaviour
 {
-    [SerializeField] float moveSpeed = 5f;
-    [SerializeField] float rotateSpeed = 90f;
+    [Header("Move force")]
+    [SerializeField] float baseMoveForce = 20f;
+    [SerializeField] float moveForceIncrement = 40f;
+    [SerializeField] float maxMoveForce = 80f;
+
+    [Header("Turn torque")]
+    [SerializeField] float baseTurnTorque = 15f;
+    [SerializeField] float turnTorqueIncrement = 30f;
+    [SerializeField] float maxTurnTorque = 60f;
 
     bool _moveForward;
     bool _moveBackward;
     bool _rotateLeft;
     bool _rotateRight;
+
+    float _currentMoveForce;
+    float _currentTurnTorque;
+
+    Rigidbody _body;
 
     public void StartMoveForward() => _moveForward = true;
     public void StopMoveForward() => _moveForward = false;
@@ -28,26 +41,59 @@ public class ShipController : MonoBehaviour
         _moveBackward = false;
         _rotateLeft = false;
         _rotateRight = false;
+        _currentMoveForce = 0f;
+        _currentTurnTorque = 0f;
     }
 
-    void Update()
+    void Awake()
     {
-        float move = 0f;
-        if (_moveForward) move += 1f;
-        if (_moveBackward) move -= 1f;
+        _body = GetComponent<Rigidbody>();
+    }
 
-        float yaw = 0f;
-        if (_rotateLeft) yaw -= 1f;
-        if (_rotateRight) yaw += 1f;
+    void FixedUpdate()
+    {
+        float moveNet = 0f;
+        if (_moveForward) moveNet += 1f;
+        if (_moveBackward) moveNet -= 1f;
 
-        if (yaw != 0f)
-            transform.Rotate(0f, yaw * rotateSpeed * Time.deltaTime, 0f, Space.World);
+        float turnNet = 0f;
+        if (_rotateRight) turnNet += 1f;
+        if (_rotateLeft) turnNet -= 1f;
 
-        if (move != 0f)
+        if (moveNet != 0f)
         {
-            Vector3 delta = transform.forward * (move * moveSpeed * Time.deltaTime);
-            delta.y = 0f;
-            transform.position += delta;
+            if (_currentMoveForce <= 0f)
+                _currentMoveForce = baseMoveForce;
+            else
+                _currentMoveForce = Mathf.Min(
+                    maxMoveForce,
+                    _currentMoveForce + moveForceIncrement * Time.fixedDeltaTime);
+
+            _body.AddForce(transform.forward * (moveNet * _currentMoveForce), ForceMode.Force);
         }
+        else
+        {
+            _currentMoveForce = 0f;
+        }
+
+        if (turnNet != 0f)
+        {
+            if (_currentTurnTorque <= 0f)
+                _currentTurnTorque = baseTurnTorque;
+            else
+                _currentTurnTorque = Mathf.Min(
+                    maxTurnTorque,
+                    _currentTurnTorque + turnTorqueIncrement * Time.fixedDeltaTime);
+
+            _body.AddTorque(Vector3.up * (turnNet * _currentTurnTorque), ForceMode.Force);
+        }
+        else
+        {
+            _currentTurnTorque = 0f;
+        }
+
+        Vector3 velocity = _body.linearVelocity;
+        velocity.y = 0f;
+        _body.linearVelocity = velocity;
     }
 }
