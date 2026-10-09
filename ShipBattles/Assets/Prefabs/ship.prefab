@@ -1249,9 +1249,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4478959628103750952}
   serializedVersion: 5
-  m_Mass: 50
+  m_Mass: 5
   m_LinearDamping: 1.5
-  m_AngularDamping: 3
+  m_AngularDamping: 0.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -1275,12 +1275,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4478959628103750952}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5b7c2d84a1f4e9b9c6d0a3f8e2b5c17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 10
+  speed: 0
 --- !u!114 &6128493750162847391
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1293,12 +1293,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1c4e8a27d3f4a6e9f0b5c8d2e6a1f34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseMoveForce: 20
-  moveForceIncrement: 40
-  maxMoveForce: 80
-  baseTurnTorque: 15
-  turnTorqueIncrement: 30
-  maxTurnTorque: 60
+  baseMoveForce: 2
+  moveForceIncrement: 4
+  maxMoveForce: 8
+  baseTurnSpeed: 1
+  turnSpeedIncrement: 2
+  maxTurnSpeed: 3
 --- !u!114 &7284916503827419502
 MonoBehaviour:
   m_ObjectHideFlags: 0

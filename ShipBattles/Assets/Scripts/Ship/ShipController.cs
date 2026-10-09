@@ -8,10 +8,10 @@ public class ShipController : MonoBehaviour
     [SerializeField] float moveForceIncrement = 40f;
     [SerializeField] float maxMoveForce = 80f;
 
-    [Header("Turn torque")]
-    [SerializeField] float baseTurnTorque = 15f;
-    [SerializeField] float turnTorqueIncrement = 30f;
-    [SerializeField] float maxTurnTorque = 60f;
+    [Header("Turn speed (degrees/sec)")]
+    [SerializeField] float baseTurnSpeed = 40f;
+    [SerializeField] float turnSpeedIncrement = 60f;
+    [SerializeField] float maxTurnSpeed = 120f;
 
     bool _moveForward;
     bool _moveBackward;
@@ -19,7 +19,7 @@ public class ShipController : MonoBehaviour
     bool _rotateRight;
 
     float _currentMoveForce;
-    float _currentTurnTorque;
+    float _currentTurnSpeed;
 
     Rigidbody _body;
 
@@ -42,12 +42,13 @@ public class ShipController : MonoBehaviour
         _rotateLeft = false;
         _rotateRight = false;
         _currentMoveForce = 0f;
-        _currentTurnTorque = 0f;
+        _currentTurnSpeed = 0f;
     }
 
     void Awake()
     {
         _body = GetComponent<Rigidbody>();
+        _body.centerOfMass = Vector3.zero;
     }
 
     void FixedUpdate()
@@ -78,18 +79,23 @@ public class ShipController : MonoBehaviour
 
         if (turnNet != 0f)
         {
-            if (_currentTurnTorque <= 0f)
-                _currentTurnTorque = baseTurnTorque;
+            if (_currentTurnSpeed <= 0f)
+                _currentTurnSpeed = baseTurnSpeed;
             else
-                _currentTurnTorque = Mathf.Min(
-                    maxTurnTorque,
-                    _currentTurnTorque + turnTorqueIncrement * Time.fixedDeltaTime);
+                _currentTurnSpeed = Mathf.Min(
+                    maxTurnSpeed,
+                    _currentTurnSpeed + turnSpeedIncrement * Time.fixedDeltaTime);
 
-            _body.AddTorque(Vector3.up * (turnNet * _currentTurnTorque), ForceMode.Force);
+            float yawDelta = turnNet * _currentTurnSpeed * Time.fixedDeltaTime;
+            _body.MoveRotation(Quaternion.Euler(0f, yawDelta, 0f) * _body.rotation);
+
+            // Pure spin: don't let floor friction shove the hull while only turning.
+            if (moveNet == 0f)
+                _body.linearVelocity = Vector3.zero;
         }
         else
         {
-            _currentTurnTorque = 0f;
+            _currentTurnSpeed = 0f;
         }
 
         Vector3 velocity = _body.linearVelocity;
