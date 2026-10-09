@@ -9,6 +9,9 @@ public class Missile : MonoBehaviour
     [SerializeField, Tooltip("Played at the missile position when it hits a ship or another missile.")]
     GameObject explosionPrefab;
 
+    [SerializeField, Tooltip("Damage applied to a ShipWall (or ShipHealth) on impact.")]
+    float damage = 10f;
+
     [SerializeField, Tooltip("Seconds to ignore the firing ship so the shot can clear the muzzle before friendly hits count.")]
     float ownerExitIgnoreDuration = 0.2f;
 
@@ -95,11 +98,30 @@ public class Missile : MonoBehaviour
             return;
         }
 
-        if (collision.collider.GetComponentInParent<ShipController>() != null
-            || collision.collider.GetComponentInParent<Missile>() != null)
+        ShipController ship = collision.collider.GetComponentInParent<ShipController>();
+        if (ship != null)
         {
+            ApplyDamage(collision.collider);
             Explode();
+            return;
         }
+
+        if (collision.collider.GetComponentInParent<Missile>() != null)
+            Explode();
+    }
+
+    void ApplyDamage(Collider hitCollider)
+    {
+        ShipWall wall = hitCollider.GetComponentInParent<ShipWall>();
+        if (wall != null)
+        {
+            wall.TakeDamage(damage);
+            return;
+        }
+
+        ShipHealth health = hitCollider.GetComponentInParent<ShipHealth>();
+        if (health != null)
+            health.TakeDamage(damage);
     }
 
     void BounceOffWall(Collision collision)
