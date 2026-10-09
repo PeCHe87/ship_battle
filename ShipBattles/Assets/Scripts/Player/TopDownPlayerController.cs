@@ -2,15 +2,16 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(PlayerShipSensor))]
 public class TopDownPlayerController : MonoBehaviour
 {
     [SerializeField] InputActionReference moveAction;
-    [SerializeField] Transform ship;
     [SerializeField] float moveSpeed = 6f;
     [SerializeField] float rotateSpeed = 720f;
     [SerializeField] float inputDeadzone = 0.1f;
 
     CharacterController _controller;
+    PlayerShipSensor _shipSensor;
     float _verticalVelocity;
     Vector3 _prevShipPosition;
     float _prevShipYaw;
@@ -19,6 +20,7 @@ public class TopDownPlayerController : MonoBehaviour
     void Awake()
     {
         _controller = GetComponent<CharacterController>();
+        _shipSensor = GetComponent<PlayerShipSensor>();
     }
 
     void OnEnable()
@@ -57,10 +59,17 @@ public class TopDownPlayerController : MonoBehaviour
             moveDir = Vector3.zero;
         }
 
-        if (_controller.isGrounded && _verticalVelocity < 0f)
-            _verticalVelocity = -1f;
+        if (_shipSensor != null && _shipSensor.IsInside)
+        {
+            if (_controller.isGrounded && _verticalVelocity < 0f)
+                _verticalVelocity = -1f;
+            else
+                _verticalVelocity += Physics.gravity.y * Time.deltaTime;
+        }
         else
-            _verticalVelocity += Physics.gravity.y * Time.deltaTime;
+        {
+            _verticalVelocity = 0f;
+        }
 
         Vector3 velocity = moveDir * moveSpeed;
         velocity.y = _verticalVelocity;
@@ -74,12 +83,19 @@ public class TopDownPlayerController : MonoBehaviour
 
     void ApplyShipCarry()
     {
+        Transform ship = _shipSensor != null && _shipSensor.IsInside && _shipSensor.CurrentShip != null
+            ? _shipSensor.CurrentShip.transform
+            : null;
+
         if (ship == null)
+        {
+            _hasShipPose = false;
             return;
+        }
 
         if (!_hasShipPose)
         {
-            CacheShipPose();
+            CacheShipPose(ship);
             return;
         }
 
@@ -103,15 +119,20 @@ public class TopDownPlayerController : MonoBehaviour
                 transform.Rotate(0f, yawDelta, 0f, Space.World);
         }
 
-        CacheShipPose();
+        CacheShipPose(ship);
     }
 
-    void CacheShipPose()
+    void CacheShipPose(Transform ship = null)
     {
         if (ship == null)
         {
-            _hasShipPose = false;
-            return;
+            if (_shipSensor == null || !_shipSensor.IsInside || _shipSensor.CurrentShip == null)
+            {
+                _hasShipPose = false;
+                return;
+            }
+
+            ship = _shipSensor.CurrentShip.transform;
         }
 
         _prevShipPosition = ship.position;
