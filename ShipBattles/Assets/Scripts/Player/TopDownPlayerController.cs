@@ -10,12 +10,19 @@ public class TopDownPlayerController : MonoBehaviour
     [SerializeField] float rotateSpeed = 720f;
     [SerializeField] float inputDeadzone = 0.1f;
 
+    [Header("Space (outside ship)")]
+    [SerializeField] float spaceMaxSpeed = 6f;
+    [SerializeField] float spaceAcceleration = 8f;
+    [SerializeField] float spaceDeceleration = 4f;
+
     CharacterController _controller;
     PlayerShipSensor _shipSensor;
     float _verticalVelocity;
     Vector3 _prevShipPosition;
     float _prevShipYaw;
     bool _hasShipPose;
+    Vector3 _spaceVelocity;
+    bool _wasInside;
 
     void Awake()
     {
@@ -43,36 +50,84 @@ public class TopDownPlayerController : MonoBehaviour
         if (moveAction != null && moveAction.action != null)
             input = moveAction.action.ReadValue<Vector2>();
 
-        Vector3 moveDir = new Vector3(input.x, 0f, input.y);
-        if (moveDir.sqrMagnitude > inputDeadzone * inputDeadzone)
-        {
-            moveDir.Normalize();
+        bool hasInput = input.sqrMagnitude > inputDeadzone * inputDeadzone;
+        Vector3 inputDir = hasInput
+            ? new Vector3(input.x, 0f, input.y).normalized
+            : Vector3.zero;
 
+        bool inside = _shipSensor != null && _shipSensor.IsInside;
+        HandleModeTransition(inside, inputDir);
+
+        if (inside)
+            UpdateDeckMovement(inputDir, hasInput);
+        else
+            UpdateSpaceMovement(inputDir, hasInput);
+
+        _wasInside = inside;
+    }
+
+    void HandleModeTransition(bool inside, Vector3 inputDir)
+    {
+        if (inside && !_wasInside)
+        {
+            _spaceVelocity = Vector3.zero;
+            return;
+        }
+
+        if (!inside && _wasInside)
+        {
+            // Seed coast from the deck move the player had when exiting.
+            _spaceVelocity = inputDir * moveSpeed;
+        }
+    }
+
+    void UpdateDeckMovement(Vector3 moveDir, bool hasInput)
+    {
+        if (hasInput)
+        {
             Quaternion targetRotation = Quaternion.LookRotation(moveDir, Vector3.up);
             transform.rotation = Quaternion.RotateTowards(
                 transform.rotation,
                 targetRotation,
                 rotateSpeed * Time.deltaTime);
         }
-        else
-        {
-            moveDir = Vector3.zero;
-        }
 
-        if (_shipSensor != null && _shipSensor.IsInside)
-        {
-            if (_controller.isGrounded && _verticalVelocity < 0f)
-                _verticalVelocity = -1f;
-            else
-                _verticalVelocity += Physics.gravity.y * Time.deltaTime;
-        }
+        if (_controller.isGrounded && _verticalVelocity < 0f)
+            _verticalVelocity = -1f;
         else
-        {
-            _verticalVelocity = 0f;
-        }
+            _verticalVelocity += Physics.gravity.y * Time.deltaTime;
 
         Vector3 velocity = moveDir * moveSpeed;
         velocity.y = _verticalVelocity;
+        _controller.Move(velocity * Time.deltaTime);
+    }
+
+    void UpdateSpaceMovement(Vector3 inputDir, bool hasInput)
+    {
+        _verticalVelocity = 0f;
+
+        Vector3 targetVelocity = hasInput ? inputDir * spaceMaxSpeed : Vector3.zero;
+        float rate = hasInput ? spaceAcceleration : spaceDeceleration;
+        _spaceVelocity = Vector3.MoveTowards(
+            _spaceVelocity,
+            targetVelocity,
+            rate * Time.deltaTime);
+
+        Vector3 faceDir = _spaceVelocity.sqrMagnitude > inputDeadzone * inputDeadzone
+            ? _spaceVelocity.normalized
+            : inputDir;
+
+        if (faceDir.sqrMagnitude > 0f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(faceDir, Vector3.up);
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                targetRotation,
+                rotateSpeed * Time.deltaTime);
+        }
+
+        Vector3 velocity = _spaceVelocity;
+        velocity.y = 0f;
         _controller.Move(velocity * Time.deltaTime);
     }
 
