@@ -624,7 +624,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveAction: {fileID: 11400000, guid: d4e7b2a19c854f3e8b6a0d1c5f9e3a27, type: 2}
-  rotatingLevel: {fileID: 1875005729}
+  ship: {fileID: 1875005730}
   moveSpeed: 4
   rotateSpeed: 720
   inputDeadzone: 0.1
@@ -972,6 +972,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5b7c2d84a1f4e9b9c6d0a3f8e2b5c17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &1875005730 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4092768494947987099, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+  m_PrefabInstance: {fileID: 1875005728}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
