@@ -1,15 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering;
 
 public class Cannon : MonoBehaviour
 {
     static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
-    static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-    static readonly int ColorId = Shader.PropertyToID("_Color");
-
-    const float RingGroundHeight = 0.03f;
-    const float RingHeightScale = 0.01f;
 
     [SerializeField] Missile missilePrefab;
     [SerializeField] Transform bulletSpawn;
@@ -22,17 +16,12 @@ public class Cannon : MonoBehaviour
     float fireCooldown = 0.35f;
     [SerializeField, Tooltip("Emission applied to the cannon mesh while the player is in range.")]
     Color readyEmission = new Color(2.2f, 1.1f, 0.2f, 1f);
-    [SerializeField] Material rangeRingMaterial;
-    [SerializeField] Color ringIdleColor = new Color(1f, 0.55f, 0.1f, 0.22f);
-    [SerializeField] Color ringReadyColor = new Color(1f, 0.75f, 0.2f, 0.45f);
 
     float _nextFireTime;
     TopDownPlayerController _player;
     Collider _cannonCollider;
     MeshRenderer _cannonRenderer;
     MaterialPropertyBlock _propertyBlock;
-    Transform _rangeRing;
-    MeshRenderer _rangeRingRenderer;
     bool _playerInRange;
 
     void Awake()
@@ -49,7 +38,6 @@ public class Cannon : MonoBehaviour
                 bulletSpawn = found;
         }
 
-        CreateRangeRing();
         ApplyReadyVisuals(false);
     }
 
@@ -58,12 +46,6 @@ public class Cannon : MonoBehaviour
         // Shared across cannons; do not Disable on OnDisable or one cannon would mute the rest.
         if (fireAction != null && fireAction.action != null)
             fireAction.action.Enable();
-    }
-
-    void OnDestroy()
-    {
-        if (_rangeRing != null)
-            Destroy(_rangeRing.gameObject);
     }
 
     void Update()
@@ -83,11 +65,6 @@ public class Cannon : MonoBehaviour
             return;
 
         TryFire();
-    }
-
-    void LateUpdate()
-    {
-        UpdateRangeRingTransform();
     }
 
     bool IsPlayerInRange()
@@ -122,58 +99,14 @@ public class Cannon : MonoBehaviour
         missile.Launch(bulletSpawn.forward * muzzleSpeed);
     }
 
-    void CreateRangeRing()
-    {
-        if (rangeRingMaterial == null)
-            return;
-
-        // Keep unparented so the cannon's non-uniform scale does not warp the radius disc.
-        GameObject ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        ring.name = $"{name}_RangeRing";
-        Collider ringCollider = ring.GetComponent<Collider>();
-        if (ringCollider != null)
-            Destroy(ringCollider);
-
-        _rangeRing = ring.transform;
-        _rangeRingRenderer = ring.GetComponent<MeshRenderer>();
-        _rangeRingRenderer.sharedMaterial = rangeRingMaterial;
-        _rangeRingRenderer.shadowCastingMode = ShadowCastingMode.Off;
-        _rangeRingRenderer.receiveShadows = false;
-
-        UpdateRangeRingTransform();
-    }
-
-    void UpdateRangeRingTransform()
-    {
-        if (_rangeRing == null)
-            return;
-
-        Vector3 position = transform.position;
-        position.y = RingGroundHeight;
-        _rangeRing.SetPositionAndRotation(position, Quaternion.identity);
-
-        // Default cylinder radius is 0.5, so scale xz = diameter yields world radius = interactRadius.
-        float diameter = interactRadius * 2f;
-        _rangeRing.localScale = new Vector3(diameter, RingHeightScale, diameter);
-    }
-
     void ApplyReadyVisuals(bool ready)
     {
-        if (_cannonRenderer != null)
-        {
-            _cannonRenderer.GetPropertyBlock(_propertyBlock);
-            _propertyBlock.SetColor(EmissionColorId, ready ? readyEmission : Color.black);
-            _cannonRenderer.SetPropertyBlock(_propertyBlock);
-        }
+        if (_cannonRenderer == null)
+            return;
 
-        if (_rangeRingRenderer != null)
-        {
-            Color ringColor = ready ? ringReadyColor : ringIdleColor;
-            _rangeRingRenderer.GetPropertyBlock(_propertyBlock);
-            _propertyBlock.SetColor(BaseColorId, ringColor);
-            _propertyBlock.SetColor(ColorId, ringColor);
-            _rangeRingRenderer.SetPropertyBlock(_propertyBlock);
-        }
+        _cannonRenderer.GetPropertyBlock(_propertyBlock);
+        _propertyBlock.SetColor(EmissionColorId, ready ? readyEmission : Color.black);
+        _cannonRenderer.SetPropertyBlock(_propertyBlock);
     }
 
     void OnDrawGizmosSelected()

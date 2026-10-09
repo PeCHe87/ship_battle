@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 142397bd25cf70c4a9fe0c954934f343, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -544,6 +544,38 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3178854988038043365, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: ringIdleColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178854988038043365, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: ringIdleColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178854988038043365, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: ringIdleColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178854988038043365, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: ringReadyColor.b
+      value: 0.19999999
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178854988038043365, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: ringReadyColor.g
+      value: 0.90685654
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178854988038043365, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: ringActiveColor.b
+      value: 0.25098038
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178854988038043365, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: ringActiveColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178854988038043365, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: ringActiveColor.r
+      value: 0.3499097
+      objectReference: {fileID: 0}
     - target: {fileID: 4092768494947987099, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
       propertyPath: m_LocalPosition.x
       value: -18
@@ -587,26 +619,6 @@ PrefabInstance:
     - target: {fileID: 4478959628103750952, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
       propertyPath: m_Name
       value: shipA
-      objectReference: {fileID: 0}
-    - target: {fileID: 5002189386966817828, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.44
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091391435358588415, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.44
-      objectReference: {fileID: 0}
-    - target: {fileID: 6321476870344856778, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.44
-      objectReference: {fileID: 0}
-    - target: {fileID: 7257063016181196433, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.44
-      objectReference: {fileID: 0}
-    - target: {fileID: 8192736450182746391, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
-      propertyPath: id
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
