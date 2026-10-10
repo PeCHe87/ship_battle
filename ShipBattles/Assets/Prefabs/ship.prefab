@@ -1406,9 +1406,11 @@ MonoBehaviour:
   baseMoveForce: 2
   moveForceIncrement: 4
   maxMoveForce: 8
+  moveForceDecrement: 5
   baseTurnSpeed: 4
   turnSpeedIncrement: 8
   maxTurnSpeed: 12
+  turnSpeedDecrement: 5
   forwardParticles: {fileID: 6281547995655539846}
   rotateLeftParticles: {fileID: 5689230540752741675}
   rotateRightParticles: {fileID: 7453414526403167005}
