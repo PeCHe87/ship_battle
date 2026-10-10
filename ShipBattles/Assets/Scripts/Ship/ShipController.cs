@@ -178,5 +178,6 @@ public class ShipController : MonoBehaviour
         Vector3 velocity = _body.linearVelocity;
         velocity.y = 0f;
         _body.linearVelocity = velocity;
+        _body.angularVelocity = Vector3.zero;
     }
 }
