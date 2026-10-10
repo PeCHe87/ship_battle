@@ -156,6 +156,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lifetime: 8
   explosionPrefab: {fileID: 9010849596890224403, guid: cdc79a1c9e1ec0f419a6e44b948e346f, type: 3}
+  wallHitExplosionPrefab: {fileID: 2500144801928371201, guid: 3e8c1a7b9d4f2e60a5c8b1d0f6e4a927, type: 3}
   ownerExitIgnoreDuration: 0.2
 --- !u!96 &7102849156203841208
 TrailRenderer:

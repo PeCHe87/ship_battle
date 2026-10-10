@@ -9,6 +9,9 @@ public class Missile : MonoBehaviour
     [SerializeField, Tooltip("Played at the missile position when it hits a ship or another missile.")]
     GameObject explosionPrefab;
 
+    [SerializeField, Tooltip("Played instead of Explosion Prefab when the missile hits a ShipWall.")]
+    GameObject wallHitExplosionPrefab;
+
     [SerializeField, Tooltip("Damage applied to a ShipWall (or ShipHealth) on impact.")]
     float damage = 10f;
 
@@ -98,27 +101,29 @@ public class Missile : MonoBehaviour
             return;
         }
 
+        // Wall hits use a dedicated VFX and must not also play the default ship/missile explosion.
+        ShipWall wall = collision.collider.GetComponentInParent<ShipWall>();
+        if (wall != null)
+        {
+            wall.TakeDamage(damage);
+            Explode(wallHitExplosionPrefab);
+            return;
+        }
+
         ShipController ship = collision.collider.GetComponentInParent<ShipController>();
         if (ship != null)
         {
             ApplyDamage(collision.collider);
-            Explode();
+            Explode(explosionPrefab);
             return;
         }
 
         if (collision.collider.GetComponentInParent<Missile>() != null)
-            Explode();
+            Explode(explosionPrefab);
     }
 
     void ApplyDamage(Collider hitCollider)
     {
-        ShipWall wall = hitCollider.GetComponentInParent<ShipWall>();
-        if (wall != null)
-        {
-            wall.TakeDamage(damage);
-            return;
-        }
-
         ShipHealth health = hitCollider.GetComponentInParent<ShipHealth>();
         if (health != null)
             health.TakeDamage(damage);
@@ -138,18 +143,18 @@ public class Missile : MonoBehaviour
         _rb.linearVelocity = Vector3.Reflect(inbound, normal);
     }
 
-    void Explode()
+    void Explode(GameObject vfxPrefab)
     {
         if (_exploded)
             return;
         _exploded = true;
 
-        if (explosionPrefab != null)
+        if (vfxPrefab != null)
         {
             Instantiate(
-                explosionPrefab,
+                vfxPrefab,
                 transform.position,
-                explosionPrefab.transform.rotation);
+                vfxPrefab.transform.rotation);
         }
 
         Destroy(gameObject);

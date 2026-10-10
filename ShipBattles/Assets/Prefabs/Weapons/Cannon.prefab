@@ -170,7 +170,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   missilePrefab: {fileID: 7102849156203841207, guid: a52d815244a5499fb6f4c8ce45a2fec8, type: 3}
   bulletSpawn: {fileID: 4297297024922269853}
-  fireAction: {fileID: 11400000, guid: 02efcbbde1d14cd08b389bac6637f24b, type: 2}
   interactRadius: 2.5
   muzzleSpeed: 20
   fireCooldown: 0.35
@@ -190,7 +189,6 @@ GameObject:
   - component: {fileID: 5033975123077189611}
   - component: {fileID: 1026768658970465700}
   - component: {fileID: 7468755969676347123}
-  - component: {fileID: 5109688266747470436}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -270,24 +268,3 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &5109688266747470436
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6984167844899392961}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1.0000005, y: 1, z: 1.0000005}
-  m_Center: {x: 0.000003814699, y: 0, z: -0.0000019073495}

@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8c4d0f25e3a4b9c0d1f6e7a2b3c4d5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShipWall
-  maxShieldHealth: 50
+  maxShieldHealth: 10
   shieldActiveVisual: {fileID: 4523006839151990625}
   shieldBrokenVisual: {fileID: 0}
   shieldBrokenVfxPrefab: {fileID: 0}
