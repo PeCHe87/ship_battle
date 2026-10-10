@@ -5,6 +5,9 @@ public class ShipHealth : MonoBehaviour
 {
     [SerializeField] float maxHealth = 100f;
 
+    [SerializeField, Tooltip("Prefab or ParticleSystem spawned at the ship when health reaches zero.")]
+    ParticleSystem deathParticles;
+
     float _currentHealth;
     bool _isDestroyed;
     ShipController _shipController;
@@ -47,5 +50,13 @@ public class ShipHealth : MonoBehaviour
         _isDestroyed = true;
         if (_shipController != null)
             _shipController.StopAll();
+
+        if (deathParticles != null)
+        {
+            ParticleSystem deathFx = Instantiate(deathParticles, transform.position, transform.rotation);
+            deathFx.Play();
+        }
+
+        gameObject.SetActive(false);
     }
 }

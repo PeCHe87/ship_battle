@@ -1570,6 +1570,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShipHealth
   maxHealth: 100
+  deathParticles: {fileID: 6198676940243320844, guid: 283ac909ccbbf804b86951aab654bf57, type: 3}
 --- !u!1 &4576139221864790845
 GameObject:
   m_ObjectHideFlags: 0
