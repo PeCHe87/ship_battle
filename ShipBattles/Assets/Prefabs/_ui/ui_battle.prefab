@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3039072455125542855}
   - component: {fileID: 8181416076638114627}
   - component: {fileID: 5939247704866535236}
+  - component: {fileID: 7148293056182743901}
   m_Layer: 5
   m_Name: ui_battle
   m_TagString: Untagged
@@ -104,6 +105,20 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &7148293056182743901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2707085399599079457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8c4d2e6f0a14c7e9d3b5a8f1e6c2d47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  winnerText: {fileID: 0}
+  restartText: {fileID: 0}
 --- !u!1 &5900090748999643506
 GameObject:
   m_ObjectHideFlags: 0

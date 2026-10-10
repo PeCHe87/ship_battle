@@ -17,6 +17,7 @@ public class ShipHealth : MonoBehaviour
     public bool IsDestroyed => _isDestroyed;
 
     public event Action<float, float> HealthChanged;
+    public event Action<ShipHealth> Destroyed;
 
     void Awake()
     {
@@ -57,6 +58,8 @@ public class ShipHealth : MonoBehaviour
             deathFx.Play();
         }
 
+        // Fire before deactivate so listeners can still read identity/components on this ship.
+        Destroyed?.Invoke(this);
         gameObject.SetActive(false);
     }
 }
