@@ -95,7 +95,6 @@ public class PlayerShipSensor : MonoBehaviour
     void CompleteExit(int exitedShipId)
     {
         ClearShip();
-        SnapToGroundHeight();
         LogTrigger("Exit", exitedShipId);
     }
 
@@ -114,25 +113,6 @@ public class PlayerShipSensor : MonoBehaviour
             return;
 
         helmet.SetActive(!IsInside);
-    }
-
-    void SnapToGroundHeight()
-    {
-        var controller = GetComponent<CharacterController>();
-        Vector3 position = transform.position;
-        position.y = 1f;
-
-        if (controller != null)
-        {
-            bool wasEnabled = controller.enabled;
-            controller.enabled = false;
-            transform.position = position;
-            controller.enabled = wasEnabled;
-        }
-        else
-        {
-            transform.position = position;
-        }
     }
 
     bool IsOutsideExit(Transform ship, Vector3 exitPosition)

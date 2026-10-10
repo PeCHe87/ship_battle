@@ -24,7 +24,7 @@ public class TopDownPlayerController : MonoBehaviour
 
     CharacterController _controller;
     PlayerShipSensor _shipSensor;
-    float _verticalVelocity;
+    float _lockedY;
     Vector3 _prevShipPosition;
     float _prevShipYaw;
     bool _hasShipPose;
@@ -35,6 +35,7 @@ public class TopDownPlayerController : MonoBehaviour
     {
         _controller = GetComponent<CharacterController>();
         _shipSensor = GetComponent<PlayerShipSensor>();
+        _lockedY = transform.position.y;
     }
 
     void OnEnable()
@@ -162,20 +163,13 @@ public class TopDownPlayerController : MonoBehaviour
                 rotateSpeed * Time.deltaTime);
         }
 
-        if (_controller.isGrounded && _verticalVelocity < 0f)
-            _verticalVelocity = -1f;
-        else
-            _verticalVelocity += Physics.gravity.y * Time.deltaTime;
-
         Vector3 velocity = moveDir * moveSpeed;
-        velocity.y = _verticalVelocity;
+        velocity.y = 0f;
         _controller.Move(velocity * Time.deltaTime);
     }
 
     void UpdateSpaceMovement(Vector3 inputDir, bool hasInput)
     {
-        _verticalVelocity = 0f;
-
         Vector3 targetVelocity = hasInput ? inputDir * spaceMaxSpeed : Vector3.zero;
         float rate = hasInput ? spaceAcceleration : spaceDeceleration;
         _spaceVelocity = Vector3.MoveTowards(
@@ -204,6 +198,18 @@ public class TopDownPlayerController : MonoBehaviour
     void LateUpdate()
     {
         ApplyShipCarry();
+        LockY();
+    }
+
+    void LockY()
+    {
+        Vector3 position = transform.position;
+        if (Mathf.Approximately(position.y, _lockedY))
+            return;
+
+        position.y = _lockedY;
+        // Do not toggle CharacterController.enabled — that breaks boarding trigger enter/exit.
+        transform.position = position;
     }
 
     void ApplyShipCarry()
@@ -226,23 +232,20 @@ public class TopDownPlayerController : MonoBehaviour
 
         float yawDelta = Mathf.DeltaAngle(_prevShipYaw, ship.eulerAngles.y);
 
-        if (_controller.isGrounded)
-        {
-            Vector3 worldOffset = transform.position - _prevShipPosition;
-            worldOffset.y = 0f;
-            Vector3 localOffset = Quaternion.Euler(0f, -_prevShipYaw, 0f) * worldOffset;
-            Vector3 targetPosition = ship.position + Quaternion.Euler(0f, ship.eulerAngles.y, 0f) * localOffset;
-            targetPosition.y = transform.position.y;
+        Vector3 worldOffset = transform.position - _prevShipPosition;
+        worldOffset.y = 0f;
+        Vector3 localOffset = Quaternion.Euler(0f, -_prevShipYaw, 0f) * worldOffset;
+        Vector3 targetPosition = ship.position + Quaternion.Euler(0f, ship.eulerAngles.y, 0f) * localOffset;
+        targetPosition.y = _lockedY;
 
-            // Hard-attach: CharacterController.Move collision-resolves and slides on a rotating deck.
-            bool wasEnabled = _controller.enabled;
-            _controller.enabled = false;
+        Vector3 delta = targetPosition - transform.position;
+        // Skip when the ship did not move/rotate: walking is already applied by Move(),
+        // and toggling/teleporting every frame breaks ShipBoardingZone triggers.
+        if (delta.sqrMagnitude > 0.000001f)
             transform.position = targetPosition;
-            _controller.enabled = wasEnabled;
 
-            if (!Mathf.Approximately(yawDelta, 0f))
-                transform.Rotate(0f, yawDelta, 0f, Space.World);
-        }
+        if (!Mathf.Approximately(yawDelta, 0f))
+            transform.Rotate(0f, yawDelta, 0f, Space.World);
 
         CacheShipPose(ship);
     }
