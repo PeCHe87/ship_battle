@@ -1,6 +1,7 @@
 using InControl;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerShipSensor))]
@@ -79,6 +80,10 @@ public class TopDownPlayerController : MonoBehaviour
         if (UnityDevice is Joystick joystick)
         {
             if (joystick.trigger != null && joystick.trigger.wasPressedThisFrame)
+                return true;
+
+            ButtonControl button1 = joystick.TryGetChildControl<ButtonControl>("button1");
+            if (button1 != null && button1.wasPressedThisFrame)
                 return true;
         }
 
