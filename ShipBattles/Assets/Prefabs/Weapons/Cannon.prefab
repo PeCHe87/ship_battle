@@ -170,7 +170,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   missilePrefab: {fileID: 7102849156203841207, guid: a52d815244a5499fb6f4c8ce45a2fec8, type: 3}
   bulletSpawn: {fileID: 4297297024922269853}
-  interactRadius: 2.5
+  interactRadius: 1.5
   muzzleSpeed: 20
   fireCooldown: 0.35
   readyEmission: {r: 2.2, g: 1.1, b: 0.2, a: 1}

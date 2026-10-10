@@ -13,6 +13,11 @@ public class ShipController : MonoBehaviour
     [SerializeField] float turnSpeedIncrement = 60f;
     [SerializeField] float maxTurnSpeed = 120f;
 
+    [Header("Thruster particles")]
+    [SerializeField] ParticleSystem forwardParticles;
+    [SerializeField] ParticleSystem rotateLeftParticles;
+    [SerializeField] ParticleSystem rotateRightParticles;
+
     bool _moveForward;
     bool _moveBackward;
     bool _rotateLeft;
@@ -23,17 +28,44 @@ public class ShipController : MonoBehaviour
 
     Rigidbody _body;
 
-    public void StartMoveForward() => _moveForward = true;
-    public void StopMoveForward() => _moveForward = false;
+    public void StartMoveForward()
+    {
+        _moveForward = true;
+        SetParticlesPlaying(forwardParticles, true);
+    }
+
+    public void StopMoveForward()
+    {
+        _moveForward = false;
+        SetParticlesPlaying(forwardParticles, false);
+    }
 
     public void StartMoveBackward() => _moveBackward = true;
     public void StopMoveBackward() => _moveBackward = false;
 
-    public void StartRotateLeft() => _rotateLeft = true;
-    public void StopRotateLeft() => _rotateLeft = false;
+    public void StartRotateLeft()
+    {
+        _rotateLeft = true;
+        SetParticlesPlaying(rotateLeftParticles, true);
+    }
 
-    public void StartRotateRight() => _rotateRight = true;
-    public void StopRotateRight() => _rotateRight = false;
+    public void StopRotateLeft()
+    {
+        _rotateLeft = false;
+        SetParticlesPlaying(rotateLeftParticles, false);
+    }
+
+    public void StartRotateRight()
+    {
+        _rotateRight = true;
+        SetParticlesPlaying(rotateRightParticles, true);
+    }
+
+    public void StopRotateRight()
+    {
+        _rotateRight = false;
+        SetParticlesPlaying(rotateRightParticles, false);
+    }
 
     public void StopAll()
     {
@@ -43,12 +75,33 @@ public class ShipController : MonoBehaviour
         _rotateRight = false;
         _currentMoveForce = 0f;
         _currentTurnSpeed = 0f;
+        SetParticlesPlaying(forwardParticles, false);
+        SetParticlesPlaying(rotateLeftParticles, false);
+        SetParticlesPlaying(rotateRightParticles, false);
     }
 
     void Awake()
     {
         _body = GetComponent<Rigidbody>();
         _body.centerOfMass = Vector3.zero;
+        SetParticlesPlaying(forwardParticles, false);
+        SetParticlesPlaying(rotateLeftParticles, false);
+        SetParticlesPlaying(rotateRightParticles, false);
+    }
+
+    static void SetParticlesPlaying(ParticleSystem particles, bool playing)
+    {
+        if (particles == null) return;
+
+        if (playing)
+        {
+            if (!particles.isPlaying)
+                particles.Play();
+        }
+        else if (particles.isPlaying)
+        {
+            particles.Stop();
+        }
     }
 
     void FixedUpdate()

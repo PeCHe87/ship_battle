@@ -821,7 +821,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: shipA
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 6383185705647749298, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: m_Intensity
+      value: 35.257717
+      objectReference: {fileID: 0}
+    - target: {fileID: 7554491571352041257, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: m_Intensity
+      value: 29.859482
+      objectReference: {fileID: 0}
+    - target: {fileID: 8146534096615349892, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+      propertyPath: m_Intensity
+      value: 35.257717
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 3756770851613656845, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+    - {fileID: 315789308979808406, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
+    - {fileID: 3312965669485162144, guid: 5fd56ed060c26ae428ba46f836520ff7, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
