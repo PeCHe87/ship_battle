@@ -44,6 +44,16 @@ public class ShipHealth : MonoBehaviour
             HandleDestroyed();
     }
 
+    public bool Heal(float amount)
+    {
+        if (_isDestroyed || amount <= 0f || _currentHealth >= maxHealth)
+            return false;
+
+        _currentHealth = Mathf.Min(maxHealth, _currentHealth + amount);
+        NotifyHealthChanged();
+        return true;
+    }
+
     void NotifyHealthChanged()
     {
         HealthChanged?.Invoke(_currentHealth, maxHealth);

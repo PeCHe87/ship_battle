@@ -12,6 +12,9 @@ public class PlayerShipSensor : MonoBehaviour
     public int ShipId { get; private set; } = NoShipId;
     public ShipIdentity CurrentShip { get; private set; }
 
+    /// <summary>Team/home ship assigned at spawn. Unchanged by boarding other ships.</summary>
+    public int InitialShipId => initialShipId;
+
     // Walk-in hits Exit then Enter while still overlapping Exit. Disarm Exit until that ends.
     int _exitOverlapCount;
     bool _exitArmed = true;
@@ -94,17 +97,11 @@ public class PlayerShipSensor : MonoBehaviour
 
     void CompleteExit(int exitedShipId)
     {
-        ClearShip();
-        LogTrigger("Exit", exitedShipId);
-    }
-
-    void ClearShip()
-    {
-        CurrentShip = null;
-        ShipId = NoShipId;
+        // Keep CurrentShip / ShipId so space pickups can still heal the affiliated ship.
         IsInside = false;
         _exitArmed = true;
         UpdateHelmetVisibility();
+        LogTrigger("Exit", exitedShipId);
     }
 
     void UpdateHelmetVisibility()
