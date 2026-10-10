@@ -18,6 +18,10 @@ public class Cannon : MonoBehaviour
     float muzzleSpeed = 20f;
     [SerializeField, Tooltip("Minimum seconds between shots.")]
     float fireCooldown = 0.35f;
+    [SerializeField, Tooltip("Number of shots available before a reload is required.")]
+    int magazineSize = 5;
+    [SerializeField, Tooltip("Seconds to refill the magazine after the last bullet is fired.")]
+    float reloadDuration = 2f;
     [SerializeField, Tooltip("Emission applied to the cannon mesh while the player is in range.")]
     Color readyEmission = new Color(2.2f, 1.1f, 0.2f, 1f);
     [SerializeField] Transform zoneVisual;
@@ -26,17 +30,37 @@ public class Cannon : MonoBehaviour
     [SerializeField] Color ringReadyColor = new Color(1f, 0.75f, 0.2f, 0.45f);
 
     float _nextFireTime;
+    int _currentAmmo;
+    float _reloadEndTime;
+    bool _isReloading;
     Transform _shipTransform;
     Collider _cannonCollider;
     MeshRenderer _cannonRenderer;
     MaterialPropertyBlock _propertyBlock;
     bool _playerInRange;
 
+    public int CurrentAmmo => _currentAmmo;
+    public int MagazineSize => magazineSize;
+    public bool IsReloading => _isReloading;
+
+    public float ReloadProgress
+    {
+        get
+        {
+            if (!_isReloading || reloadDuration <= 0f)
+                return 1f;
+
+            float remaining = Mathf.Max(0f, _reloadEndTime - Time.time);
+            return 1f - remaining / reloadDuration;
+        }
+    }
+
     void Awake()
     {
         _cannonCollider = GetComponent<Collider>();
         _cannonRenderer = GetComponent<MeshRenderer>();
         _propertyBlock = new MaterialPropertyBlock();
+        _currentAmmo = magazineSize;
 
         ShipController ownerShip = GetComponentInParent<ShipController>();
         if (ownerShip != null)
@@ -68,6 +92,9 @@ public class Cannon : MonoBehaviour
 
     void Update()
     {
+        if (_isReloading && Time.time >= _reloadEndTime)
+            CompleteReload();
+
         TopDownPlayerController player =
             TopDownPlayerController.FindNearestInRange(transform.position, interactRadius);
         bool inRange = player != null;
@@ -90,10 +117,12 @@ public class Cannon : MonoBehaviour
 
     void TryFire()
     {
-        if (Time.time < _nextFireTime || missilePrefab == null || bulletSpawn == null)
+        if (_isReloading || _currentAmmo <= 0
+            || Time.time < _nextFireTime || missilePrefab == null || bulletSpawn == null)
             return;
 
         _nextFireTime = Time.time + fireCooldown;
+        _currentAmmo--;
 
         Missile missile = Instantiate(missilePrefab, bulletSpawn.position, bulletSpawn.rotation);
 
@@ -108,6 +137,21 @@ public class Cannon : MonoBehaviour
         }
 
         missile.Launch(bulletSpawn.forward * muzzleSpeed);
+
+        if (_currentAmmo <= 0)
+            BeginReload();
+    }
+
+    void BeginReload()
+    {
+        _isReloading = true;
+        _reloadEndTime = Time.time + reloadDuration;
+    }
+
+    void CompleteReload()
+    {
+        _isReloading = false;
+        _currentAmmo = magazineSize;
     }
 
     void SyncZoneScale()
