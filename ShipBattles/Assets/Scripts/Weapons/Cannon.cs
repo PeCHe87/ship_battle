@@ -28,12 +28,14 @@ public class Cannon : MonoBehaviour
     [SerializeField] MeshRenderer zoneRenderer;
     [SerializeField] Color ringIdleColor = new Color(1f, 0.55f, 0.1f, 0.22f);
     [SerializeField] Color ringReadyColor = new Color(1f, 0.75f, 0.2f, 0.45f);
+    [SerializeField] Color ringEmptyColor = new Color(1f, 0.15f, 0.1f, 0.45f);
 
     float _nextFireTime;
     int _currentAmmo;
     float _reloadEndTime;
     bool _isReloading;
     Transform _shipTransform;
+    ShipIdentity _ownerShip;
     Collider _cannonCollider;
     MeshRenderer _cannonRenderer;
     MaterialPropertyBlock _propertyBlock;
@@ -66,6 +68,8 @@ public class Cannon : MonoBehaviour
         if (ownerShip != null)
             _shipTransform = ownerShip.transform;
 
+        _ownerShip = GetComponentInParent<ShipIdentity>();
+
         if (bulletSpawn == null)
         {
             Transform found = transform.Find("BulletSpawn");
@@ -81,7 +85,7 @@ public class Cannon : MonoBehaviour
         }
 
         SyncZonePosition();
-        ApplyReadyVisuals(false);
+        RefreshVisuals();
     }
 
     void OnDestroy()
@@ -97,17 +101,26 @@ public class Cannon : MonoBehaviour
 
         TopDownPlayerController player =
             TopDownPlayerController.FindNearestInRange(transform.position, interactRadius);
-        bool inRange = player != null;
-        if (inRange != _playerInRange)
+        bool canInteract = CanPlayerInteract(player);
+        if (canInteract != _playerInRange)
         {
-            _playerInRange = inRange;
-            ApplyReadyVisuals(inRange);
+            _playerInRange = canInteract;
+            RefreshVisuals();
         }
 
-        if (player == null || !player.WasInteractPressed())
+        if (!canInteract || !player.WasInteractPressed())
             return;
 
         TryFire();
+    }
+
+    bool CanPlayerInteract(TopDownPlayerController player)
+    {
+        if (player == null || _ownerShip == null)
+            return false;
+
+        PlayerShipSensor sensor = player.GetComponent<PlayerShipSensor>();
+        return sensor != null && sensor.IsInside && sensor.ShipId == _ownerShip.Id;
     }
 
     void LateUpdate()
@@ -146,12 +159,14 @@ public class Cannon : MonoBehaviour
     {
         _isReloading = true;
         _reloadEndTime = Time.time + reloadDuration;
+        RefreshVisuals();
     }
 
     void CompleteReload()
     {
         _isReloading = false;
         _currentAmmo = magazineSize;
+        RefreshVisuals();
     }
 
     void SyncZoneScale()
@@ -176,18 +191,25 @@ public class Cannon : MonoBehaviour
         zoneVisual.SetPositionAndRotation(position, Quaternion.identity);
     }
 
-    void ApplyReadyVisuals(bool ready)
+    void RefreshVisuals()
     {
+        bool empty = _currentAmmo <= 0 || _isReloading;
+
         if (_cannonRenderer != null)
         {
             _cannonRenderer.GetPropertyBlock(_propertyBlock);
-            _propertyBlock.SetColor(EmissionColorId, ready ? readyEmission : Color.black);
+            _propertyBlock.SetColor(EmissionColorId, _playerInRange && !empty ? readyEmission : Color.black);
             _cannonRenderer.SetPropertyBlock(_propertyBlock);
         }
 
         if (zoneRenderer != null)
         {
-            Color ringColor = ready ? ringReadyColor : ringIdleColor;
+            Color ringColor = ringIdleColor;
+            if (empty)
+                ringColor = ringEmptyColor;
+            else if (_playerInRange)
+                ringColor = ringReadyColor;
+
             zoneRenderer.GetPropertyBlock(_propertyBlock);
             _propertyBlock.SetColor(BaseColorId, ringColor);
             _propertyBlock.SetColor(ColorId, ringColor);
