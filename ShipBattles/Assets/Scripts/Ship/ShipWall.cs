@@ -13,6 +13,9 @@ public class ShipWall : MonoBehaviour
     [SerializeField, Tooltip("Played once at this wall when the shield reaches zero.")]
     GameObject shieldBrokenVfxPrefab;
 
+    [SerializeField, Tooltip("World spawn point for Shield Broken Vfx Prefab. Falls back to this wall's transform if unset.")]
+    Transform shieldBrokenVfxPivot;
+
     float _currentShieldHealth;
     ShipHealth _shipHealth;
 
@@ -65,9 +68,13 @@ public class ShipWall : MonoBehaviour
         if (shieldBrokenVfxPrefab == null)
             return;
 
+        Vector3 spawnPosition = shieldBrokenVfxPivot != null
+            ? shieldBrokenVfxPivot.position
+            : transform.position;
+
         Instantiate(
             shieldBrokenVfxPrefab,
-            transform.position,
+            spawnPosition,
             shieldBrokenVfxPrefab.transform.rotation);
     }
 }
