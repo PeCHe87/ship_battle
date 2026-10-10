@@ -315,6 +315,18 @@ PrefabInstance:
       propertyPath: m_text
       value: TEAM A
       objectReference: {fileID: 0}
+    - target: {fileID: 8220878340687735962, guid: 716716b0ccabf7344bf2b5178d52e584, type: 3}
+      propertyPath: m_fontColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8220878340687735962, guid: 716716b0ccabf7344bf2b5178d52e584, type: 3}
+      propertyPath: m_fontColor.r
+      value: 0.08627451
+      objectReference: {fileID: 0}
+    - target: {fileID: 8220878340687735962, guid: 716716b0ccabf7344bf2b5178d52e584, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4278255382
+      objectReference: {fileID: 0}
     - target: {fileID: 8301847561928374651, guid: 716716b0ccabf7344bf2b5178d52e584, type: 3}
       propertyPath: shipId
       value: 1
@@ -452,6 +464,18 @@ PrefabInstance:
     - target: {fileID: 8220878340687735962, guid: 716716b0ccabf7344bf2b5178d52e584, type: 3}
       propertyPath: m_text
       value: TEAM B
+      objectReference: {fileID: 0}
+    - target: {fileID: 8220878340687735962, guid: 716716b0ccabf7344bf2b5178d52e584, type: 3}
+      propertyPath: m_fontColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8220878340687735962, guid: 716716b0ccabf7344bf2b5178d52e584, type: 3}
+      propertyPath: m_fontColor.g
+      value: 0.41568628
+      objectReference: {fileID: 0}
+    - target: {fileID: 8220878340687735962, guid: 716716b0ccabf7344bf2b5178d52e584, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4278217471
       objectReference: {fileID: 0}
     - target: {fileID: 8220878340687735962, guid: 716716b0ccabf7344bf2b5178d52e584, type: 3}
       propertyPath: m_HorizontalAlignment
