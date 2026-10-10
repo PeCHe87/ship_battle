@@ -7,11 +7,13 @@ public class ShipController : MonoBehaviour
     [SerializeField] float baseMoveForce = 20f;
     [SerializeField] float moveForceIncrement = 40f;
     [SerializeField] float maxMoveForce = 80f;
+    [SerializeField] float moveForceDecrement = 60f;
 
     [Header("Turn speed (degrees/sec)")]
     [SerializeField] float baseTurnSpeed = 40f;
     [SerializeField] float turnSpeedIncrement = 60f;
     [SerializeField] float maxTurnSpeed = 120f;
+    [SerializeField] float turnSpeedDecrement = 80f;
 
     [Header("Thruster particles")]
     [SerializeField] ParticleSystem forwardParticles;
@@ -24,7 +26,9 @@ public class ShipController : MonoBehaviour
     bool _rotateRight;
 
     float _currentMoveForce;
+    float _lastMoveDirection;
     float _currentTurnSpeed;
+    float _lastTurnDirection;
 
     Rigidbody _body;
 
@@ -74,7 +78,9 @@ public class ShipController : MonoBehaviour
         _rotateLeft = false;
         _rotateRight = false;
         _currentMoveForce = 0f;
+        _lastMoveDirection = 0f;
         _currentTurnSpeed = 0f;
+        _lastTurnDirection = 0f;
         SetParticlesPlaying(forwardParticles, false);
         SetParticlesPlaying(rotateLeftParticles, false);
         SetParticlesPlaying(rotateRightParticles, false);
@@ -116,39 +122,57 @@ public class ShipController : MonoBehaviour
 
         if (moveNet != 0f)
         {
+            _lastMoveDirection = moveNet;
+
             if (_currentMoveForce <= 0f)
                 _currentMoveForce = baseMoveForce;
             else
                 _currentMoveForce = Mathf.Min(
                     maxMoveForce,
                     _currentMoveForce + moveForceIncrement * Time.fixedDeltaTime);
-
-            _body.AddForce(transform.forward * (moveNet * _currentMoveForce), ForceMode.Force);
         }
-        else
+        else if (_currentMoveForce > 0f)
         {
-            _currentMoveForce = 0f;
+            _currentMoveForce = Mathf.Max(
+                0f,
+                _currentMoveForce - moveForceDecrement * Time.fixedDeltaTime);
+
+            if (_currentMoveForce <= 0f)
+                _lastMoveDirection = 0f;
         }
+
+        if (_currentMoveForce > 0f && _lastMoveDirection != 0f)
+            _body.AddForce(transform.forward * (_lastMoveDirection * _currentMoveForce), ForceMode.Force);
 
         if (turnNet != 0f)
         {
+            _lastTurnDirection = turnNet;
+
             if (_currentTurnSpeed <= 0f)
                 _currentTurnSpeed = baseTurnSpeed;
             else
                 _currentTurnSpeed = Mathf.Min(
                     maxTurnSpeed,
                     _currentTurnSpeed + turnSpeedIncrement * Time.fixedDeltaTime);
+        }
+        else if (_currentTurnSpeed > 0f)
+        {
+            _currentTurnSpeed = Mathf.Max(
+                0f,
+                _currentTurnSpeed - turnSpeedDecrement * Time.fixedDeltaTime);
 
-            float yawDelta = turnNet * _currentTurnSpeed * Time.fixedDeltaTime;
+            if (_currentTurnSpeed <= 0f)
+                _lastTurnDirection = 0f;
+        }
+
+        if (_currentTurnSpeed > 0f && _lastTurnDirection != 0f)
+        {
+            float yawDelta = _lastTurnDirection * _currentTurnSpeed * Time.fixedDeltaTime;
             _body.MoveRotation(Quaternion.Euler(0f, yawDelta, 0f) * _body.rotation);
 
-            // Pure spin: don't let floor friction shove the hull while only turning.
-            if (moveNet == 0f)
+            // Pure spin only when not thrusting or coasting thrust.
+            if (moveNet == 0f && _currentMoveForce <= 0f)
                 _body.linearVelocity = Vector3.zero;
-        }
-        else
-        {
-            _currentTurnSpeed = 0f;
         }
 
         Vector3 velocity = _body.linearVelocity;
