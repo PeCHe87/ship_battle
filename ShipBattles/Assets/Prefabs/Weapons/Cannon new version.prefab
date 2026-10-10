@@ -176,7 +176,7 @@ MonoBehaviour:
   muzzleSpeed: 20
   fireCooldown: 0.35
   magazineSize: 8
-  reloadDuration: 5
+  reloadDuration: 15
   readyEmission: {r: 2.2, g: 1.1, b: 0.2, a: 1}
   zoneVisual: {fileID: 4297297024922269854}
   zoneRenderer: {fileID: 4297297024922269855}
