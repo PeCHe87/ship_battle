@@ -16,10 +16,10 @@ public class TopDownPlayerController : MonoBehaviour
     [SerializeField] float spaceAcceleration = 8f;
     [SerializeField] float spaceDeceleration = 4f;
 
-    /// <summary>Assigned by PlayerDeviceBinder. Null when using UnityDevice or keyboard.</summary>
+    /// <summary>Optional InControl pad. Prefer UnityDevice when both are set.</summary>
     public InControl.InputDevice Device { get; set; }
 
-    /// <summary>Unity Input System Gamepad/Joystick when InControl has no matching pad.</summary>
+    /// <summary>Assigned by PlayerDeviceBinder. Null = keyboard-only fallback.</summary>
     public UnityEngine.InputSystem.InputDevice UnityDevice { get; set; }
 
     CharacterController _controller;
@@ -48,8 +48,7 @@ public class TopDownPlayerController : MonoBehaviour
 
     void OnDisable()
     {
-        if (moveAction != null && moveAction.action != null)
-            moveAction.action.Disable();
+        // Shared InputActionReference — do not Disable here or culling one player mutes the rest.
     }
 
     void Update()
@@ -74,9 +73,6 @@ public class TopDownPlayerController : MonoBehaviour
 
     public bool WasInteractPressed()
     {
-        if (Device != null)
-            return Device.Action1.WasPressed;
-
         if (UnityDevice is Gamepad gamepad)
             return gamepad.buttonSouth.wasPressedThisFrame;
 
@@ -85,6 +81,9 @@ public class TopDownPlayerController : MonoBehaviour
             if (joystick.trigger != null && joystick.trigger.wasPressedThisFrame)
                 return true;
         }
+
+        if (Device != null)
+            return Device.Action1.WasPressed;
 
         Keyboard keyboard = Keyboard.current;
         return keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
@@ -119,9 +118,7 @@ public class TopDownPlayerController : MonoBehaviour
 
     Vector2 ReadMoveInput()
     {
-        if (Device != null)
-            return (Vector2)Device.Direction;
-
+        // Unity device first — unique per player across scene reloads.
         if (UnityDevice is Gamepad gamepad)
             return gamepad.leftStick.ReadValue();
 
@@ -131,7 +128,11 @@ public class TopDownPlayerController : MonoBehaviour
                 return joystick.stick.ReadValue();
         }
 
-        if (moveAction != null && moveAction.action != null)
+        if (Device != null)
+            return (Vector2)Device.Direction;
+
+        // Keyboard-only fallback (solo when no pads). Shared across players — avoid when UnityDevice is set.
+        if (UnityDevice == null && moveAction != null && moveAction.action != null)
             return moveAction.action.ReadValue<Vector2>();
 
         return Vector2.zero;

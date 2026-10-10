@@ -3,21 +3,25 @@ using System.Collections.Generic;
 using InControl;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using InControlDevice = InControl.InputDevice;
+using UnityEngine.SceneManagement;
 using UnityInputDevice = UnityEngine.InputSystem.InputDevice;
 
 /// <summary>
-/// Pairs attached gamepads/joysticks to scene players (by name order) and
-/// destroys extra player instances when fewer pads are connected.
+/// Pairs Unity Input System gamepads/joysticks to scene players (by name order)
+/// and destroys extra player instances when fewer pads are connected.
+/// Survives scene reloads so pairing runs again after match reset.
 /// </summary>
 public class PlayerDeviceBinder : MonoBehaviour
 {
     const int MaxWaitFrames = 60;
 
+    static PlayerDeviceBinder _instance;
+    Coroutine _pairRoutine;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
     {
-        if (FindFirstObjectByType<PlayerDeviceBinder>() != null)
+        if (_instance != null)
             return;
 
         var go = new GameObject("PlayerDeviceBinder");
@@ -26,20 +30,61 @@ public class PlayerDeviceBinder : MonoBehaviour
 
     void Awake()
     {
+        if (_instance != null && _instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        _instance = this;
+        DontDestroyOnLoad(gameObject);
         EnsureInControlManager();
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    IEnumerator Start()
+    void OnDestroy()
     {
-        // Wait until pads show up (InControl and/or Unity Input System), then pair.
+        if (_instance == this)
+            _instance = null;
+
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void Start()
+    {
+        RequestPairAndCull();
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (mode != LoadSceneMode.Single)
+            return;
+
+        RequestPairAndCull();
+    }
+
+    void RequestPairAndCull()
+    {
+        if (_pairRoutine != null)
+            StopCoroutine(_pairRoutine);
+
+        _pairRoutine = StartCoroutine(PairWhenReady());
+    }
+
+    IEnumerator PairWhenReady()
+    {
+        // Wait until Unity pads show up (or timeout), then pair.
         for (int i = 0; i < MaxWaitFrames; i++)
         {
-            if (CountDetectedPads() > 0)
+            if (CollectUnityPads().Count > 0)
                 break;
             yield return null;
         }
 
+        // One extra frame so scene players finish Awake after LoadScene.
+        yield return null;
         PairAndCull();
+        _pairRoutine = null;
     }
 
     static void EnsureInControlManager()
@@ -51,55 +96,18 @@ public class PlayerDeviceBinder : MonoBehaviour
         go.AddComponent<InControlManager>();
     }
 
-    static int CountDetectedPads()
-    {
-        return CollectInControlPads().Count + CollectUnityPads().Count;
-    }
-
-    static List<InControlDevice> CollectInControlPads()
-    {
-        var pads = new List<InControlDevice>();
-        foreach (InControlDevice device in InputManager.Devices)
-        {
-            if (device == null || !device.IsAttached)
-                continue;
-            if (!IsPlayableInControlPad(device))
-                continue;
-            pads.Add(device);
-        }
-
-        pads.Sort((a, b) => a.SortOrder.CompareTo(b.SortOrder));
-        return pads;
-    }
-
-    static bool IsPlayableInControlPad(InControlDevice device)
-    {
-        switch (device.DeviceClass)
-        {
-            case InputDeviceClass.Keyboard:
-            case InputDeviceClass.Mouse:
-            case InputDeviceClass.TouchScreen:
-                return false;
-            case InputDeviceClass.Controller:
-            case InputDeviceClass.ArcadeStick:
-            case InputDeviceClass.ArcadePad:
-            case InputDeviceClass.FlightStick:
-            case InputDeviceClass.Unknown:
-                // Unknown covers generic DirectInput joysticks InControl still attaches.
-                return true;
-            default:
-                return false;
-        }
-    }
-
     static List<UnityInputDevice> CollectUnityPads()
     {
         var pads = new List<UnityInputDevice>();
+        var seenIds = new HashSet<int>();
 
         foreach (Gamepad gamepad in Gamepad.all)
         {
-            if (gamepad != null && gamepad.added)
-                pads.Add(gamepad);
+            if (gamepad == null || !gamepad.added)
+                continue;
+            if (!seenIds.Add(gamepad.deviceId))
+                continue;
+            pads.Add(gamepad);
         }
 
         foreach (Joystick joystick in Joystick.all)
@@ -108,6 +116,8 @@ public class PlayerDeviceBinder : MonoBehaviour
                 continue;
             // Gamepad already listed above; skip duplicates that also appear as Joystick.
             if (joystick is Gamepad)
+                continue;
+            if (!seenIds.Add(joystick.deviceId))
                 continue;
             pads.Add(joystick);
         }
@@ -120,13 +130,14 @@ public class PlayerDeviceBinder : MonoBehaviour
     {
         var players = new List<TopDownPlayerController>(
             FindObjectsByType<TopDownPlayerController>(FindObjectsSortMode.None));
+        if (players.Count == 0)
+            return;
+
         players.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
 
-        List<InControlDevice> inControlPads = CollectInControlPads();
+        // Unity Input System is the source of truth (InControl DDOL duplicates break resets).
         List<UnityInputDevice> unityPads = CollectUnityPads();
-
-        // Use whichever backend reports more pads (InControl often misses Joystick-only devices).
-        int padCount = Mathf.Max(inControlPads.Count, unityPads.Count);
+        int padCount = unityPads.Count;
         // 0 pads → keep player_1 on keyboard; otherwise one player per pad.
         int keepCount = padCount == 0 ? 1 : Mathf.Min(padCount, players.Count);
 
@@ -138,7 +149,8 @@ public class PlayerDeviceBinder : MonoBehaviour
                 continue;
             }
 
-            players[i].Device = i < inControlPads.Count ? inControlPads[i] : null;
+            // Clear InControl assignment so movement never prefers a shared/stale Device.
+            players[i].Device = null;
             players[i].UnityDevice = i < unityPads.Count ? unityPads[i] : null;
         }
     }
