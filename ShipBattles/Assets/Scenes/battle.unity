@@ -545,6 +545,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ui_battle
       objectReference: {fileID: 0}
+    - target: {fileID: 2707085399599079457, guid: 22f8fd87d2a81b843a38a35ef023a59d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3323986777993987277, guid: 22f8fd87d2a81b843a38a35ef023a59d, type: 3}
       propertyPath: m_Pivot.x
       value: 0
