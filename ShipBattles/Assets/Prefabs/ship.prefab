@@ -827,6 +827,7 @@ MonoBehaviour:
   forwardParticles: {fileID: 6281547995655539846}
   rotateLeftParticles: {fileID: 5689230540752741675}
   rotateRightParticles: {fileID: 7453414526403167005}
+  propulsionSfx: {fileID: 8300000, guid: b5ee5974f6d2f514098e9ce875f82192, type: 3}
 --- !u!114 &7284916503827419502
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -870,6 +871,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShipHealth
   maxHealth: 200
   deathParticles: {fileID: 6198676940243320844, guid: 283ac909ccbbf804b86951aab654bf57, type: 3}
+  deathSfx: {fileID: 8300000, guid: 11f51ba065747a849860aabfc912996a, type: 3}
+  deathSfxVolume: 1.5
 --- !u!114 &1628033560971579392
 MonoBehaviour:
   m_ObjectHideFlags: 0
