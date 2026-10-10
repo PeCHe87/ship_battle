@@ -101,12 +101,16 @@ public class Missile : MonoBehaviour
             return;
         }
 
-        // Wall hits use a dedicated VFX and must not also play the default ship/missile explosion.
+        // Shielded walls get the wall-hit VFX; broken shields use the normal boom.
         ShipWall wall = collision.collider.GetComponentInParent<ShipWall>();
         if (wall != null)
         {
+            GameObject vfx = wall.IsShieldActive
+                ? wallHitExplosionPrefab
+                : explosionPrefab;
+
             wall.TakeDamage(damage);
-            Explode(wallHitExplosionPrefab);
+            Explode(vfx != null ? vfx : explosionPrefab);
             return;
         }
 
