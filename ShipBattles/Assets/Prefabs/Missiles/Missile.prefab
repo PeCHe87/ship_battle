@@ -159,6 +159,8 @@ MonoBehaviour:
   wallHitExplosionPrefab: {fileID: 2500144801928371201, guid: 3e8c1a7b9d4f2e60a5c8b1d0f6e4a927, type: 3}
   damage: 10
   ownerExitIgnoreDuration: 0.2
+  shieldHitSfx: {fileID: 8300000, guid: 548a3a78cfae0d84186438b71e466627, type: 3}
+  explosionSfx: {fileID: 8300000, guid: d548f5bd16dfdac4395631708c6e4c3c, type: 3}
 --- !u!96 &7102849156203841208
 TrailRenderer:
   serializedVersion: 4

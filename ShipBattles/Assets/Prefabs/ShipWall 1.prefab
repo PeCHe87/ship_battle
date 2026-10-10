@@ -132,6 +132,7 @@ MonoBehaviour:
   shieldBrokenVisual: {fileID: 0}
   shieldBrokenVfxPrefab: {fileID: 2483441359232571900, guid: 906c5a4e6d216d340b60cf68ef7124ea, type: 3}
   shieldBrokenVfxPivot: {fileID: 8393762770996306646}
+  shieldDestroySfx: {fileID: 8300000, guid: c59772a549e326f4e8db1f56be4908d5, type: 3}
 --- !u!1 &1348458560213769339
 GameObject:
   m_ObjectHideFlags: 0

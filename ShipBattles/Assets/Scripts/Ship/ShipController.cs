@@ -20,6 +20,10 @@ public class ShipController : MonoBehaviour
     [SerializeField] ParticleSystem rotateLeftParticles;
     [SerializeField] ParticleSystem rotateRightParticles;
 
+    [Header("Thruster audio")]
+    [SerializeField, Tooltip("Loop played while any move action (forward/back/left/right) is active. One source per ship.")]
+    AudioClip propulsionSfx;
+
     bool _moveForward;
     bool _moveBackward;
     bool _rotateLeft;
@@ -31,44 +35,63 @@ public class ShipController : MonoBehaviour
     float _lastTurnDirection;
 
     Rigidbody _body;
+    AudioSource _propulsionSource;
+
+    bool AnyMoveActionActive =>
+        _moveForward || _moveBackward || _rotateLeft || _rotateRight;
 
     public void StartMoveForward()
     {
         _moveForward = true;
         SetParticlesPlaying(forwardParticles, true);
+        RefreshPropulsionSfx();
     }
 
     public void StopMoveForward()
     {
         _moveForward = false;
         SetParticlesPlaying(forwardParticles, false);
+        RefreshPropulsionSfx();
     }
 
-    public void StartMoveBackward() => _moveBackward = true;
-    public void StopMoveBackward() => _moveBackward = false;
+    public void StartMoveBackward()
+    {
+        _moveBackward = true;
+        RefreshPropulsionSfx();
+    }
+
+    public void StopMoveBackward()
+    {
+        _moveBackward = false;
+        RefreshPropulsionSfx();
+    }
 
     public void StartRotateLeft()
     {
         _rotateLeft = true;
         SetParticlesPlaying(rotateLeftParticles, true);
+        RefreshPropulsionSfx();
     }
 
     public void StopRotateLeft()
     {
         _rotateLeft = false;
         SetParticlesPlaying(rotateLeftParticles, false);
+        RefreshPropulsionSfx();
     }
 
     public void StartRotateRight()
     {
         _rotateRight = true;
         SetParticlesPlaying(rotateRightParticles, true);
+        RefreshPropulsionSfx();
     }
 
     public void StopRotateRight()
     {
         _rotateRight = false;
         SetParticlesPlaying(rotateRightParticles, false);
+        RefreshPropulsionSfx();
     }
 
     public void StopAll()
@@ -84,15 +107,52 @@ public class ShipController : MonoBehaviour
         SetParticlesPlaying(forwardParticles, false);
         SetParticlesPlaying(rotateLeftParticles, false);
         SetParticlesPlaying(rotateRightParticles, false);
+        RefreshPropulsionSfx();
     }
 
     void Awake()
     {
         _body = GetComponent<Rigidbody>();
         _body.centerOfMass = Vector3.zero;
+        SetupPropulsionSource();
         SetParticlesPlaying(forwardParticles, false);
         SetParticlesPlaying(rotateLeftParticles, false);
         SetParticlesPlaying(rotateRightParticles, false);
+    }
+
+    void OnDisable()
+    {
+        if (_propulsionSource != null && _propulsionSource.isPlaying)
+            _propulsionSource.Stop();
+    }
+
+    void SetupPropulsionSource()
+    {
+        if (propulsionSfx == null)
+            return;
+
+        _propulsionSource = gameObject.AddComponent<AudioSource>();
+        _propulsionSource.clip = propulsionSfx;
+        _propulsionSource.loop = true;
+        _propulsionSource.playOnAwake = false;
+        _propulsionSource.spatialBlend = 1f;
+        _propulsionSource.outputAudioMixerGroup = GameAudio.SfxGroup;
+    }
+
+    void RefreshPropulsionSfx()
+    {
+        if (_propulsionSource == null)
+            return;
+
+        if (AnyMoveActionActive)
+        {
+            if (!_propulsionSource.isPlaying)
+                _propulsionSource.Play();
+        }
+        else if (_propulsionSource.isPlaying)
+        {
+            _propulsionSource.Stop();
+        }
     }
 
     static void SetParticlesPlaying(ParticleSystem particles, bool playing)

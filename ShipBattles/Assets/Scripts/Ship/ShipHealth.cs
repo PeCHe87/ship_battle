@@ -8,6 +8,12 @@ public class ShipHealth : MonoBehaviour
     [SerializeField, Tooltip("Prefab or ParticleSystem spawned at the ship when health reaches zero.")]
     ParticleSystem deathParticles;
 
+    [SerializeField, Tooltip("Played at the ship when it is destroyed.")]
+    AudioClip deathSfx;
+
+    [SerializeField, Range(0f, 3f), Tooltip("Volume for Death Sfx only (on top of the SFX mixer fader).")]
+    float deathSfxVolume = 1.5f;
+
     float _currentHealth;
     bool _isDestroyed;
     ShipController _shipController;
@@ -57,6 +63,9 @@ public class ShipHealth : MonoBehaviour
             ParticleSystem deathFx = Instantiate(deathParticles, transform.position, transform.rotation);
             deathFx.Play();
         }
+
+        if (deathSfx != null)
+            GameAudio.PlaySfx(deathSfx, transform.position, deathSfxVolume);
 
         // Fire before deactivate so listeners can still read identity/components on this ship.
         Destroyed?.Invoke(this);

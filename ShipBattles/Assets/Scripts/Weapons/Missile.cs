@@ -18,6 +18,12 @@ public class Missile : MonoBehaviour
     [SerializeField, Tooltip("Seconds to ignore the firing ship so the shot can clear the muzzle before friendly hits count.")]
     float ownerExitIgnoreDuration = 0.2f;
 
+    [SerializeField, Tooltip("Played when the missile hits an active ShipWall shield.")]
+    AudioClip shieldHitSfx;
+
+    [SerializeField, Tooltip("Played when the missile hits a ShipWall with no shield (normal explosion).")]
+    AudioClip explosionSfx;
+
     Rigidbody _rb;
     Collider _collider;
     Vector3 _velocityBeforePhysics;
@@ -101,16 +107,18 @@ public class Missile : MonoBehaviour
             return;
         }
 
-        // Shielded walls get the wall-hit VFX; broken shields use the normal boom.
+        // Shielded walls get the wall-hit VFX/SFX; broken shields use the normal boom.
         ShipWall wall = collision.collider.GetComponentInParent<ShipWall>();
         if (wall != null)
         {
-            GameObject vfx = wall.IsShieldActive
+            bool shieldActive = wall.IsShieldActive;
+            GameObject vfx = shieldActive
                 ? wallHitExplosionPrefab
                 : explosionPrefab;
+            AudioClip impactSfx = shieldActive ? shieldHitSfx : explosionSfx;
 
             wall.TakeDamage(damage);
-            Explode(vfx != null ? vfx : explosionPrefab);
+            Explode(vfx != null ? vfx : explosionPrefab, impactSfx);
             return;
         }
 
@@ -118,12 +126,12 @@ public class Missile : MonoBehaviour
         if (ship != null)
         {
             ApplyDamage(collision.collider);
-            Explode(explosionPrefab);
+            Explode(explosionPrefab, null);
             return;
         }
 
         if (collision.collider.GetComponentInParent<Missile>() != null)
-            Explode(explosionPrefab);
+            Explode(explosionPrefab, null);
     }
 
     void ApplyDamage(Collider hitCollider)
@@ -147,7 +155,7 @@ public class Missile : MonoBehaviour
         _rb.linearVelocity = Vector3.Reflect(inbound, normal);
     }
 
-    void Explode(GameObject vfxPrefab)
+    void Explode(GameObject vfxPrefab, AudioClip sfx)
     {
         if (_exploded)
             return;
@@ -160,6 +168,9 @@ public class Missile : MonoBehaviour
                 transform.position,
                 vfxPrefab.transform.rotation);
         }
+
+        if (sfx != null)
+            GameAudio.PlaySfx(sfx, transform.position);
 
         Destroy(gameObject);
     }

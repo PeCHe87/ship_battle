@@ -178,6 +178,7 @@ MonoBehaviour:
   zoneRenderer: {fileID: 4297297024922269855}
   ringIdleColor: {r: 1, g: 0.55, b: 0.1, a: 0.22}
   ringReadyColor: {r: 1, g: 0.75, b: 0.2, a: 0.45}
+  shootSfx: {fileID: 8300000, guid: 2e6494405a734e740b7bdd9a8e40551f, type: 3}
 --- !u!1 &6984167844899392961
 GameObject:
   m_ObjectHideFlags: 0
