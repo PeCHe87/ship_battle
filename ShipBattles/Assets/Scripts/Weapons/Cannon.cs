@@ -28,12 +28,9 @@ public class Cannon : MonoBehaviour
     [SerializeField] MeshRenderer zoneRenderer;
     [SerializeField] Color ringIdleColor = new Color(1f, 0.55f, 0.1f, 0.22f);
     [SerializeField] Color ringReadyColor = new Color(1f, 0.75f, 0.2f, 0.45f);
-<<<<<<< Updated upstream
     [SerializeField] Color ringEmptyColor = new Color(1f, 0.15f, 0.1f, 0.45f);
-=======
     [SerializeField, Tooltip("One-shot played at the muzzle when a shot fires.")]
     AudioClip shootSfx;
->>>>>>> Stashed changes
 
     float _nextFireTime;
     int _currentAmmo;
